@@ -39,7 +39,7 @@ prompt_pure_git_dirty() {
 	[[ "$PURE_GIT_UNTRACKED_DIRTY" == 0 ]] && local umode="-uno" || local umode="-unormal"
 	command test -n "$(git status --porcelain --ignore-submodules ${umode})"
 
-	(($? == 0)) && echo '*'
+	(($? == 0)) && echo ' %F{242}●%f'
 }
 
 # displays the exec time of the last command if set threshold was exceeded
@@ -71,7 +71,8 @@ prompt_pure_precmd() {
 	# git info
 	vcs_info
 
-	local prompt_pure_preprompt="\n%F{blue}%~%F{242}$vcs_info_msg_0_`prompt_pure_git_dirty` $prompt_pure_username%f %F{yellow}`prompt_pure_cmd_exec_time`%f"
+	# removed 'prompt_pure_git_dirty'
+	local prompt_pure_preprompt="\n%F{blue}%~%F{242}$vcs_info_msg_0_ $prompt_pure_username%f %F{yellow}`prompt_pure_cmd_exec_time`%f"
 	print -P $prompt_pure_preprompt
 
 	# check async if there is anything to pull
@@ -110,15 +111,21 @@ prompt_pure_setup() {
 	add-zsh-hook precmd prompt_pure_precmd
 	add-zsh-hook preexec prompt_pure_preexec
 
+	# zstyle ':vcs_info:*' enable git
+	# zstyle ':vcs_info:git*' formats ' %b'
 	zstyle ':vcs_info:*' enable git
-	zstyle ':vcs_info:git*' formats ' %b'
-	zstyle ':vcs_info:git*' actionformats ' %b|%a'
+	# set colors for staged & unstaged
+	zstyle ':vcs_info:*' stagedstr '%F{green}●'
+	zstyle ':vcs_info:*' unstagedstr '%F{242}●'
+	zstyle ':vcs_info:*' check-for-changes true
+	zstyle ':vcs_info:*' formats ' %F{242}%b %c%u'
+	zstyle ':vcs_info:git*' actionformats ' %F{242}%b %c%u|%a'
 
 	# show username@host if logged in through SSH
 	[[ "$SSH_CONNECTION" != '' ]] && prompt_pure_username='%n@%m '
 
 	# prompt turns red if the previous command didn't exit with 0
-	PROMPT='%(?.%F{magenta}.%F{red})❯%f '
+	PROMPT='%(?.%F{white}.%F{red})❯%f '
 }
 
 prompt_pure_setup "$@"
